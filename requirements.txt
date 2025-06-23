@@ -1,4 +1,4 @@
 requests
 pickledb
-pyzk
+git+https://github.com/hendigo/modified_pyzk.git@master#egg=pyzk
 PyQt5
