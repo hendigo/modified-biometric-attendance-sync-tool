@@ -143,7 +143,7 @@ def pull_process_and_push_data(device, device_attendance_logs=None):
             if not(any(error in erpnext_message for error in allowlisted_errors)):
                 raise Exception('API Call to ERPNext Failed.')
 
-
+"""
 def get_all_attendance_from_device(ip, port=4370, timeout=30, device_id=None, clear_from_device_on_fetch=False):
     #  Sample Attendance Logs [{'punch': 255, 'user_id': '22', 'uid': 12349, 'status': 1, 'timestamp': datetime.datetime(2019, 2, 26, 20, 31, 29)},{'punch': 255, 'user_id': '7', 'uid': 7, 'status': 1, 'timestamp': datetime.datetime(2019, 2, 26, 20, 31, 36)}]
     zk = ZK(ip, port=port, timeout=timeout)
@@ -176,6 +176,61 @@ def get_all_attendance_from_device(ip, port=4370, timeout=30, device_id=None, cl
     finally:
         if conn:
             conn.disconnect()
+    return list(map(lambda x: x.__dict__, attendances))
+"""
+
+def get_all_attendance_from_device(ip, port=4370, timeout=30, device_id=None, clear_from_device_on_fetch=False):
+    zk = ZK(ip, port=port, timeout=timeout)
+    conn = None
+    attendances = []
+    try:
+        conn = zk.connect()
+
+        # Disable device sebelum mengambil data
+        try:
+            x = conn.disable_device()
+            info_logger.info("\t".join((ip, "Device Disable Attempted. Result:", str(x))))
+        except Exception as e:
+            info_logger.error(f"{ip} error during disable_device: {e}")
+            x = None
+
+        # Ambil data absensi
+        attendances = conn.get_attendance()
+        info_logger.info("\t".join((ip, "Attendances Fetched:", str(len(attendances)))))
+
+        # Update status pull dan push timestamp
+        status.set(f'{device_id}_push_timestamp', None)
+        status.set(f'{device_id}_pull_timestamp', str(datetime.datetime.now()))
+        status.save()
+
+        if len(attendances):
+            # Backup data absensi ke file
+            dump_file_name = get_dump_file_name_and_directory(device_id, ip)
+            with open(dump_file_name, 'w+') as f:
+                f.write(json.dumps(list(map(lambda x: x.__dict__, attendances)), default=datetime.datetime.timestamp))
+
+            # Clear data absensi di device jika diinstruksikan
+            if clear_from_device_on_fetch:
+                try:
+                    x = conn.clear_attendance()
+                    info_logger.info("\t".join((ip, "Attendance Clear Attempted. Result:", str(x))))
+                except Exception as e:
+                    info_logger.error(f"{ip} error during clear_attendance: {e}")
+
+        # Enable device kembali setelah selesai
+        try:
+            x = conn.enable_device()
+            info_logger.info("\t".join((ip, "Device Enable Attempted. Result:", str(x))))
+        except Exception as e:
+            info_logger.error(f"{ip} error during enable_device: {e}")
+
+    except Exception as e:
+        error_logger.exception(f"{ip} exception when fetching from device: {e}")
+        raise Exception('Device fetch failed.')
+    finally:
+        if conn:
+            conn.disconnect()
+
     return list(map(lambda x: x.__dict__, attendances))
 
 
