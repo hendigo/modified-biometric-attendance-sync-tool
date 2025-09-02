@@ -1,5 +1,18 @@
-requests
-pickledb
-git+https://github.com/hendigo/modified_pyzk.git@master#egg=pyzk
-PyQt5
-python-dotenv>=1.0,<2
+# ----- CORE -----
+aiofiles==24.1.0
+orjson==3.10.18
+pickleDB==1.3.2
+python-dotenv==1.1.1
+requests==2.32.4
+urllib3==2.5.0
+idna==3.10
+charset-normalizer==3.4.2
+certifi==2025.6.15
+
+# ----- DEVICE LIB (fork, pin ke commit SHA) -----
+pyzk @ git+https://github.com/hendigo/modified_pyzk.git@ad22e140603dfec8feb7b5071f6ed0acc23810d8
+
+# ----- OPSIONAL/GUI (dipin agar reproducible)
+PyQt5==5.15.11
+PyQt5-Qt5==5.15.17
+PyQt5_sip==12.17.0
