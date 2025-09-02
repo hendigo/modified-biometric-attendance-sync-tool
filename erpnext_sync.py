@@ -1,9 +1,11 @@
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 import local_config as config
 import requests
 import datetime
 import json
-import os
 import sys
 import time
 import logging
@@ -151,7 +153,7 @@ def get_all_attendance_from_device(ip, port=4370, timeout=30, device_id=None, cl
     attendances = []
     try:
         conn = zk.connect()
-        x = conn.disable_device()
+        # x = conn.disable_device()
         # device is disabled when fetching data
         info_logger.info("\t".join((ip, "Device Disable Attempted. Result:", str(x))))
         attendances = conn.get_attendance()
@@ -168,7 +170,7 @@ def get_all_attendance_from_device(ip, port=4370, timeout=30, device_id=None, cl
             if clear_from_device_on_fetch:
                 x = conn.clear_attendance()
                 info_logger.info("\t".join((ip, "Attendance Clear Attempted. Result:", str(x))))
-        x = conn.enable_device()
+        # x = conn.enable_device()
         info_logger.info("\t".join((ip, "Device Enable Attempted. Result:", str(x))))
     except:
         error_logger.exception(str(ip)+' exception when fetching from device...')
@@ -237,7 +239,6 @@ def get_all_attendance_from_device(ip, port=4370, timeout=30, device_id=None, cl
 def send_to_erpnext(employee_field_value, timestamp, device_id=None, log_type=None, latitude=None, longitude=None):
     """
     Examples: 
-    
     For ERPNext, Frappe HR <= v14
     send_to_erpnext('12349',datetime.datetime.now(),'HO1','IN')
 
@@ -395,7 +396,10 @@ def infinite_loop(sleep_time=15):
         try:
             main()
             time.sleep(sleep_time)
-        except BaseException as e:
+        except KeyboardInterrupt:
+            print("Stopping by user (Ctrl-C). Bye!")
+            break
+        except Exception as e:
             print(e)
 
 if __name__ == "__main__":

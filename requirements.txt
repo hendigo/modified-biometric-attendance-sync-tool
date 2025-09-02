@@ -2,3 +2,4 @@ requests
 pickledb
 git+https://github.com/hendigo/modified_pyzk.git@master#egg=pyzk
 PyQt5
+python-dotenv>=1.0,<2
