@@ -1,0 +1,13 @@
+aiofiles==24.1.0
+certifi==2025.6.15
+charset-normalizer==3.4.2
+idna==3.10
+orjson==3.10.18
+pickleDB==1.3.2
+PyQt5==5.15.11
+PyQt5-Qt5==5.15.17
+PyQt5_sip==12.17.0
+python-dotenv==1.1.1
+pyzk @ git+https://github.com/hendigo/modified_pyzk.git@ad22e140603dfec8feb7b5071f6ed0acc23810d8
+requests==2.32.4
+urllib3==2.5.0
