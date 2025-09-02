@@ -1,9 +1,11 @@
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 import local_config as config
 import requests
 import datetime
 import json
-import os
 import sys
 import time
 import logging
@@ -394,7 +396,10 @@ def infinite_loop(sleep_time=15):
         try:
             main()
             time.sleep(sleep_time)
-        except BaseException as e:
+        except KeyboardInterrupt:
+            print("Stopping by user (Ctrl-C). Bye!")
+            break
+        except Exception as e:
             print(e)
 
 if __name__ == "__main__":
