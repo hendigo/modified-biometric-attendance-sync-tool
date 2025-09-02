@@ -1,3 +1,5 @@
+cat > .gitignore <<'EOF'
+
 .vscode
 logs/
 

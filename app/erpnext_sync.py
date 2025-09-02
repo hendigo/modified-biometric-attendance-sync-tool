@@ -1,4 +1,5 @@
-import os
+import os, requests
+from requests.adapters import HTTPAdapter
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -12,6 +13,39 @@ import logging
 from logging.handlers import RotatingFileHandler
 from pickledb import PickleDB
 from zk import ZK, const
+
+from requests.adapters import HTTPAdapter
+try:
+    from urllib3.util.retry import Retry
+except Exception:
+    Retry = None
+
+def _as_int(k, default):
+    try:
+        return int(os.getenv(k, default))
+    except Exception:
+        return default
+
+ERP_RETRY_TOTAL   = _as_int("ERP_RETRY_TOTAL", 5)
+ERP_RETRY_BACKOFF = _as_int("ERP_RETRY_BACKOFF", 2)
+ERP_TIMEOUT       = _as_int("ERP_TIMEOUT", 30)
+
+SESSION = requests.Session()
+if Retry is not None:
+    _retry = Retry(
+        total=ERP_RETRY_TOTAL, read=ERP_RETRY_TOTAL, connect=ERP_RETRY_TOTAL, status=ERP_RETRY_TOTAL,
+        backoff_factor=ERP_RETRY_BACKOFF, status_forcelist=(429, 500, 502, 503, 504),
+        allowed_methods=frozenset(["GET", "POST", "PUT", "DELETE", "PATCH"])
+    )
+    _adapter = HTTPAdapter(max_retries=_retry)
+    SESSION.mount("http://", _adapter)
+    SESSION.mount("https://", _adapter)
+SESSION.headers.update({"User-Agent": "biometric-sync/1.0"})
+
+def http_get(*a, **kw):    kw.setdefault("timeout", ERP_TIMEOUT); return SESSION.get(*a, **kw)
+def http_post(*a, **kw):   kw.setdefault("timeout", ERP_TIMEOUT); return SESSION.post(*a, **kw)
+def http_put(*a, **kw):    kw.setdefault("timeout", ERP_TIMEOUT); return SESSION.put(*a, **kw)
+def http_delete(*a, **kw): kw.setdefault("timeout", ERP_TIMEOUT); return SESSION.delete(*a, **kw)
 
 EMPLOYEE_NOT_FOUND_ERROR_MESSAGE = "No Employee found for the given employee field value"
 EMPLOYEE_INACTIVE_ERROR_MESSAGE = "Transactions cannot be created for an Inactive Employee"
